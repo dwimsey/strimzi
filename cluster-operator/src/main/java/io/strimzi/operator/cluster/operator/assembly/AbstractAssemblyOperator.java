@@ -121,9 +121,13 @@ public abstract class AbstractAssemblyOperator {
                     if (cm != null) {
                         log.info("{}: assembly {} should be created or updated", reconciliation, assemblyName);
                         createOrUpdate(reconciliation, cm, createResult -> {
-                            lock.release();
-                            log.debug("{}: Lock {} released", reconciliation, lockName);
-                            handler.handle(createResult);
+                            if (createResult.failed()) {
+                                log.error(createResult.cause().getMessage());
+                            } else {
+                                lock.release();
+                                log.debug("{}: Lock {} released", reconciliation, lockName);
+                                handler.handle(createResult);
+                            }
                         });
                     } else {
                         log.info("{}: assembly {} should be deleted", reconciliation, assemblyName);
